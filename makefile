@@ -1,12 +1,14 @@
 DIR := $(subst /,\,${CURDIR})
 BUILD_DIR := bin
 OBJ_DIR := obj
+INC_FILE := ./dependencies/include
+LIB_FILE := ./dependencies/lib
 
 ASSEMBLY := testbed
 EXTENSION := .exe
 COMPILER_FLAGS := -g -m64
-INCLUDE_FLAGS := -Itestbed\src 
-LINKER_FLAGS := -g -L$(BUILD_DIR) #-Wl,-rpath,.
+INCLUDE_FLAGS := -Itestbed\src -I$(INC_FILE)
+LINKER_FLAGS := -g -shared -luser32 -L$(BUILD_DIR) -L$(LIB_FILE) -lnodesoup.lib -lmatplot.lib #-Wl,-rpath,.
 DEFINES := 
 
 # Make does not offer a recursive wildcard function, so here's one:
