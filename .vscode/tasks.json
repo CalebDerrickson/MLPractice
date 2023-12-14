@@ -2,7 +2,7 @@
     "tasks": [
         {
             "type": "shell",
-            "label": "Build Testbed",
+            "label": "Build Everything",
             "windows": {
                 "command": "${workspaceFolder}\\build-all.bat"
             },
@@ -13,6 +13,20 @@
                 "$gcc"
             ],
             "group": "build"
+        },
+        {
+            "type": "shell",
+            "label": "Build Models",
+            "windows": {
+                "command": "${workspaceFolder}/models/build.bat"
+            },
+            "options": {
+                "cwd": "${workspaceFolder}/models"
+            },
+            "problemMatcher": [
+                "$gcc"
+            ],
+            "group": "build",
         },
         {
             "type": "shell",

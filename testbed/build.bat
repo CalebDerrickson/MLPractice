@@ -13,9 +13,9 @@ REM echo "Files:" %cFilenames%
 SET assembly=testbed
 SET compilerFlags=-g 
 REM -Wall -Werror
-SET includeFlags=-Isrc
-SET linkerFlags=
+SET includeFlags=-Isrc -I../models/src/
+SET linkerFlags=-L../bin/ -lmodels
 SET defines=
 
 ECHO "Building %assembly%%..."
-g++.exe %cFilenames% %compilerFlags% -o ../bin/%assembly%.exe %defines% %includeFlags% %linkerFlags%
+gcc.exe %cFilenames% %compilerFlags% -o ../bin/%assembly%.exe %defines% %includeFlags% %linkerFlags%
