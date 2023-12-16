@@ -6,7 +6,7 @@ ASSEMBLY := testbed
 EXTENSION := .exe
 COMPILER_FLAGS := -g -MD -Werror=vla -Wno-missing-braces -fdeclspec #-fPIC
 INCLUDE_FLAGS := -Imodels\src -Itestbed\src 
-LINKER_FLAGS := -g -lmodels.lib -L$(OBJ_DIR)\models -L$(BUILD_DIR) #-Wl,-rpath,.
+LINKER_FLAGS := -g -lmodels -L$(OBJ_DIR)\models -L$(BUILD_DIR) #-Wl,-rpath,.
 DEFINES := -D_DEBUG -DLIMPORT
 
 # Make does not offer a recursive wildcard function, so here's one:

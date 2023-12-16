@@ -14,8 +14,8 @@ SET assembly=testbed
 SET compilerFlags=-g 
 REM -Wall -Werror
 SET includeFlags=-Isrc -I../models/src/
-SET linkerFlags=-L../bin/ -lmodels
-SET defines=
+SET linkerFlags=-L../bin/ -lmodels.lib
+SET defines=-D_DEBUG -DKIMPORT
 
 ECHO "Building %assembly%%..."
-gcc.exe %cFilenames% %compilerFlags% -o ../bin/%assembly%.exe %defines% %includeFlags% %linkerFlags%
+clang %cFilenames% %compilerFlags% -o ../bin/%assembly%.exe %defines% %includeFlags% %linkerFlags%

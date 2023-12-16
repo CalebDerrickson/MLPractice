@@ -1,7 +1,10 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
+#include "defines.h"
 
 float train[][2] = {
     {0, 0},
@@ -13,4 +16,4 @@ float train[][2] = {
 };
 #define train_count (sizeof(train)/sizeof(train[0]))
 
-int twice();
+MLAPI int twice();

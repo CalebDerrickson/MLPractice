@@ -1,6 +1,10 @@
+#pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+
+#include "defines.h"
 
 // OR gate data
 float trainOR[][3] = {
@@ -13,4 +17,4 @@ float trainOR[][3] = {
 
 #define train_count (sizeof(train)/sizeof(train[0]))
 
-int gates();
+MLAPI int gates();
