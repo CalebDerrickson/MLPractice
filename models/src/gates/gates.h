@@ -12,9 +12,8 @@ float trainOR[][3] = {
     {0, 1, 1},
     {1, 1, 1},
     {1, 0, 1},
-    {0, 0, 0},
 };
 
-#define train_count (sizeof(train)/sizeof(train[0]))
+#define train_count (unsigned int)(sizeof(trainOR)/sizeof(trainOR[0]))
 
 MLAPI int gates();

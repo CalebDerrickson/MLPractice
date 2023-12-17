@@ -6,7 +6,7 @@
 
 #include "defines.h"
 
-float train[][2] = {
+static float train[][2] = {
     {0, 0},
     {1, 2},
     {3, 6},
@@ -16,4 +16,3 @@ float train[][2] = {
 };
 #define train_count (sizeof(train)/sizeof(train[0]))
 
-MLAPI int twice();

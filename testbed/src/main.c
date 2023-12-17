@@ -1,7 +1,9 @@
-#include "gates.h"
-#include "twice.h"
+#include "xor/xor.h"
+
+//#include "gates/gates.h"
+//#include "twice.h"
 
 int main(){
-    twice();
+    xor();
     return 0;
 }

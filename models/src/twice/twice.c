@@ -1,11 +1,11 @@
 #include "twice.h"
+#include "common.h"
 
-float rand_float(void)
-{
-    return (float)rand()/ (float)RAND_MAX;
-}
+MLAPI int twice();
+static float cost(float w, float b);
 
-float cost(float w, float b)
+
+static float cost(float w, float b)
 {
     float result = 0.0f;
     for (size_t i = 0; i < train_count; i++){
@@ -22,13 +22,10 @@ float cost(float w, float b)
 
 int twice() {
 
-    // srand(time(NULL));
-    srand(100);
     float w = rand_float()*10.0f;
     float b = rand_float()*50.0f;
 
-    float eps = 1e-3;
-    float rate = 1e-3;
+
     for(size_t i = 0; i < 1e6; i++){
         float cost_step = cost(w, b);
         //printf("Step: %zu \t Cost: %f\n", i, cost_step);

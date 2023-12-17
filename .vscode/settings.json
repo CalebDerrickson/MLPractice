@@ -85,6 +85,10 @@
         "set": "c",
         "xhash": "c",
         "xtree": "c",
-        "iterator": "c"
+        "iterator": "c",
+        "stdio.h": "c",
+        "gates.h": "c",
+        "stdlib.h": "c",
+        "cstdlib": "cpp"
     }
 }
