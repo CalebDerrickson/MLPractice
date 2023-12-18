@@ -1,4 +1,5 @@
 #include "xor.h"
+#define COMMON_H
 #include "common.h"
 
 

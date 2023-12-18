@@ -1,4 +1,5 @@
 #include "twice.h"
+#define COMMON_H
 #include "common.h"
 
 MLAPI int twice();

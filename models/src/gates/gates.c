@@ -1,4 +1,5 @@
 #include "gates.h"
+#define COMMON_H
 #include "common.h"
 
 float costOR(float w1, float w2, float b)
