@@ -10,12 +10,12 @@ typedef struct Xor {
     Mat w2, b2;
 } Xor;
 
-
+static Xor xor_alloc(void);
 static float cost(Xor m, Mat ti, Mat to);
 static void forward(Xor m);
 static void print_xor(Mat w1, Mat w2, Mat b1, Mat b2);
-static Xor finite_diff(Xor m);
-static Xor apply_diff(Xor m, Xor g);
+static void finite_diff(Xor m, Xor g, Mat ti, Mat to);
+static void apply_diff(Xor m, Xor g);
 
 float td[] = {
     0, 0, 0,
@@ -46,9 +46,41 @@ int xor()
 
 
     // Allocating Weights and bias matrices
+    Xor m = xor_alloc();
+    Xor g = xor_alloc();
+
+    mat_rand(m.w1, 0, 1);
+    mat_rand(m.w2, 0, 1);
+    mat_rand(m.b1, 0, 1);
+    mat_rand(m.b2, 0, 1);
+
+    //printf("cost = %f\n", cost(m, ti, to));
+    eps = 1e-1;
+    rate = 1e-1;
+
+    for (size_t i = 0; i < 1e5; i++){
+        finite_diff(m, g, ti, to);
+        apply_diff(m, g);
+        // printf("%llu, cost = %f\n", i, cost(m, ti, to));
+    }
+
+
+    for (size_t i = 0; i < 2; i++) {
+        for (size_t j = 0; j < 2; j++) {
+            MAT_AT(m.a0, 0, 0) = i;
+            MAT_AT(m.a0, 1, 0) = j; 
+            forward(m);
+            float y = *(m.a2.elements);
+            printf("%llu ^ %llu = %f\n", i, j, y);
+        }
+    }
+
+    return 0;
+}
+
+Xor xor_alloc(void)
+{
     Xor m;
-
-
     m.a0 = mat_alloc(2, 1);
     m.w1 = mat_alloc(2, 2);
     m.b1 = mat_alloc(2, 1);
@@ -56,25 +88,7 @@ int xor()
     m.w2 = mat_alloc(1, 2);
     m.b2 = mat_alloc(1, 1);
     m.a2 = mat_alloc(1, 1);
-
-    mat_rand(m.w1, 0, 1);
-    mat_rand(m.w2, 0, 1);
-    mat_rand(m.b1, 0, 1);
-    mat_rand(m.b2, 0, 1);
-
-    printf("cost = %f", cost(m, ti, to));
-
-    // for (size_t i = 0; i < 2; i++) {
-    //     for (size_t j = 0; j < 2; j++) {
-    //         MAT_AT(m.a0, 0, 0) = i;
-    //         MAT_AT(m.a0, 1, 0) = j;  kk
-    //         forward(m);
-    //         float y = *(m.a2.elements);
-    //         printf("%llu ^ %llu = &f\n", i, j, y);
-    //     }
-    // }
-
-    return 0;
+    return m;
 }
 
 void print_xor(Mat w1, Mat w2, Mat b1, Mat b2) 
@@ -125,4 +139,73 @@ float cost(Xor m, Mat ti, Mat to)
     }
 
     return c/n;
+}
+
+void finite_diff(Xor m, Xor g, Mat ti, Mat to)
+{
+    float saved;
+    float c = cost(m, ti, to);
+    for (size_t i = 0; i < m.w1.rows; i++) {
+        for (size_t j = 0; j < m.w1.cols; j++) {
+            saved = MAT_AT(m.w1, i, j);
+            MAT_AT(m.w1, i, j) += eps;
+            MAT_AT(g.w1, i, j) = (cost(m, ti, to) - c) /eps;
+            MAT_AT(m.w1, i, j) = saved;
+        }
+    }
+
+    for (size_t i = 0; i < m.b1.rows; i++) {
+        for (size_t j = 0; j < m.b1.cols; j++) {
+            saved = MAT_AT(m.b1, i, j);
+            MAT_AT(m.b1, i, j) += eps;
+            MAT_AT(g.b1, i, j) = (cost(m, ti, to) - c) /eps;
+            MAT_AT(m.b1, i, j) = saved;
+        }
+    }
+
+    for (size_t i = 0; i < m.w2.rows; i++) {
+        for (size_t j = 0; j < m.w2.cols; j++) {
+            saved = MAT_AT(m.w2, i, j);
+            MAT_AT(m.w2, i, j) += eps;
+            MAT_AT(g.w2, i, j) = (cost(m, ti, to) - c) /eps;
+            MAT_AT(m.w2, i, j) = saved;
+        }
+    }
+
+    for (size_t i = 0; i < m.b2.rows; i++) {
+        for (size_t j = 0; j < m.b2.cols; j++) {
+            saved = MAT_AT(m.b2, i, j);
+            MAT_AT(m.b2, i, j) += eps;
+            MAT_AT(g.b2, i, j) = (cost(m, ti, to) - c) /eps;
+            MAT_AT(m.b2, i, j) = saved;
+        }
+    }
+}
+
+void apply_diff(Xor m, Xor g)
+{
+    for (size_t i = 0; i < m.w1.rows; i++) {
+        for (size_t j = 0; j < m.w1.cols; j++) {
+            MAT_AT(m.w1, i, j) -= rate*MAT_AT(g.w1, i, j);
+        }
+    }
+
+    for (size_t i = 0; i < m.b1.rows; i++) {
+        for (size_t j = 0; j < m.b1.cols; j++) {
+            MAT_AT(m.b1, i, j) -= rate*MAT_AT(g.b1, i, j);
+        }
+    }
+
+    for (size_t i = 0; i < m.w2.rows; i++) {
+        for (size_t j = 0; j < m.w2.cols; j++) {
+            MAT_AT(m.w2, i, j) -= rate*MAT_AT(g.w2, i, j);
+        }
+    }
+
+    for (size_t i = 0; i < m.b2.rows; i++) {
+        for (size_t j = 0; j < m.b2.cols; j++) {
+            MAT_AT(m.b2, i, j) -= rate*MAT_AT(g.b2, i, j);
+        }
+    }
+
 }
