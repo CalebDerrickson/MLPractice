@@ -21,7 +21,7 @@ int test()
     Mat m3 = mat_alloc(3, 3);
 
     mat_dot(m3, m1, m2);
-    mat_print(m3);
+    mat_print(m3, "m3");
 
     return 0;
 }

@@ -89,6 +89,7 @@
         "stdio.h": "c",
         "gates.h": "c",
         "stdlib.h": "c",
-        "cstdlib": "cpp"
+        "cstdlib": "cpp",
+        "assert.h": "c"
     }
 }

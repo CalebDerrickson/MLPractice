@@ -45,22 +45,21 @@ sample xor_train[] = {
 sample *train = xor_train;
 #define train_count 4
 
-
-typedef struct Xor{
-
-    float or_w1;
-    float or_w2;
-    float or_b;
-
-    float and_w1;
-    float and_w2;
-    float and_b;
-
-    float nand_w1;
-    float nand_w2;
-    float nand_b;
-
-} Xor;
+// typedef struct Xor{
+// 
+//     float or_w1;
+//     float or_w2;
+//     float or_b;
+// 
+//     float and_w1;
+//     float and_w2;
+//     float and_b;
+// 
+//     float nand_w1;
+//     float nand_w2;
+//     float nand_b;
+// 
+// } Xor;
 
 
 
