@@ -8,6 +8,7 @@
 // Includes should be relegated to what we've #defined
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <math.h>
 #include "defines.h"
 
@@ -21,7 +22,7 @@
 #define COMMON_MALLOC malloc
 #endif //COMMON_MALLOC
 
-#define MAT_PRINT(m) mat_print(m, #m)
+#define MAT_PRINT(m) mat_print(m, #m, 0)
 
 static float eps = 1e-3;
 static float rate = 1e-3;
@@ -36,6 +37,7 @@ typedef struct Mat{
     float* elements;
 } Mat;
 
+#define ARRAY_LEN(xs) sizeof((xs)) / sizeof((xs)[0])
 #define MAT_AT(m, i, j) m.elements[(i)*(m).stride + (j)]
 
 static Mat mat_alloc(size_t rows, size_t cols);
@@ -47,8 +49,31 @@ static Mat mat_row(Mat m, size_t row);
 static void mat_copy(Mat dst, Mat src);
 static Mat mat_transpose(Mat m);
 static void mat_sum(Mat B, Mat A);
-static void mat_print(Mat A, const char* name);
+static void mat_print(Mat A, const char* name, size_t padding);
 static void mat_sig(Mat A);
+
+typedef struct NN {
+    size_t num_layers;
+    // pointers to weight matrices to each layer
+    Mat* ws; 
+    // pointers to bias matrices to each layer
+    Mat* bs; 
+    // pointers to activation layers. Always has size num_layers+1
+    Mat *as;  
+} NN;
+
+/**
+ * @brief Allocates and returns memory for a "complete" neural network of specified parameters.
+ * @param arch The architecture of the Neural Network. This is given as an array with elements
+ * {SIZE OF INPUT ARRAY, {NUMBER OF HIDDEN LAYERS}, SIZE OF OUTPUT ARRAY}
+ * @param arch_count The size of the arch array
+ * @returns Neural Network of specified parameters
+ */
+static NN nn_alloc(size_t *arch, size_t arch_count);
+static void nn_print(NN nn, const char* name);
+
+#define NN_PRINT(nn) nn_print(nn, #nn)
+//TODO: Ensure the memory is zeroed after allocating
 
 #endif //COMMON_H
 
@@ -76,6 +101,8 @@ Mat mat_alloc(size_t rows, size_t cols)
     m.stride = cols;
     m.elements = COMMON_MALLOC(sizeof(*m.elements)*rows*cols);
     COMMON_ASSERT(m.elements != NULL);
+    // Zeroing memory 
+    memset(m.elements, 0, m.rows * m.cols * sizeof(float));
     return m;
 }
 
@@ -169,16 +196,16 @@ void mat_sum(Mat B, Mat A)
 
 }
 
-void mat_print(Mat A, const char* name)
+void mat_print(Mat A, const char* name, size_t padding)
 {
-    printf("%s = \n[", name);
+    printf("%*s%s = \n", (int)padding, "", name);
     for (size_t i = 0; i < A.rows; i++) {
-        if (i != 0) {printf(" ");}
-        printf("[");
+        i == 0 ? printf("%*s[[", (int) padding, "") : printf(" ");
+        if (i != 0) {printf("%*s[", (int) padding, "");}
         
         for (size_t j = 0; j < A.cols; j++) {
             if (j != 0) {
-                printf(", %f", MAT_AT(A, i, j));
+                printf(" %f", MAT_AT(A, i, j));
             }
             else {
                 printf("%f", MAT_AT(A, i, j));
@@ -187,7 +214,7 @@ void mat_print(Mat A, const char* name)
 
         if (i != A.rows -1) {printf("]\n");}
     }
-    printf("]]\n");
+    printf("]]%*s\n", (int) padding, "");
 }
 
 void mat_sig(Mat A)
@@ -198,5 +225,45 @@ void mat_sig(Mat A)
         }
     }
 }
+
+NN nn_alloc(size_t *arch, size_t arch_count)
+{
+    COMMON_ASSERT(arch_count > 0);
+    NN nn;
+    nn.num_layers = arch_count - 1;
+    
+    nn.ws = COMMON_MALLOC(sizeof(*nn.ws) * nn.num_layers);
+    COMMON_ASSERT(nn.ws != NULL);
+
+    nn.bs = COMMON_MALLOC(sizeof(*nn.bs) * nn.num_layers);
+    COMMON_ASSERT(nn.bs != NULL);
+
+    nn.as =  COMMON_MALLOC(sizeof(*nn.bs) * (nn.num_layers+1));
+    COMMON_ASSERT(nn.as != NULL);
+
+    nn.as[0] = mat_alloc(arch[0], 1);
+    for (size_t i = 1; i < arch_count; i++) {
+        nn.ws[i-1] = mat_alloc(arch[i], nn.as[i-1].rows);
+        nn.bs[i-1] = mat_alloc(arch[i], 1);
+        nn.as[i] = mat_alloc(arch[i], 1);
+    }
+    return nn;
+}
+
+void nn_print(NN nn, const char* name)
+{
+    printf("%s = [\n", name);
+    
+    for (size_t i = 0; i < nn.num_layers; i++) {
+        mat_print(nn.as[i], "as", 4);
+        mat_print(nn.ws[i], "ws", 4);
+        mat_print(nn.bs[i], "bs", 4);
+    }
+    mat_print(nn.as[ARRAY_LEN(&nn.as)-1], "as", 4);
+
+    printf("]\n");
+}
+
+
 
 #endif // COMMON_H
