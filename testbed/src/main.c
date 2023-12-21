@@ -1,7 +1,7 @@
-#include "test/test.c"
-//#include "xor/xor.h"
+//#include "test/test.c"
+#include "xor/xor.h"
 
 int main(){
-    test();
+    xor();
     return 0;
 }
