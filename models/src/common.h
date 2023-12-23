@@ -8,7 +8,6 @@
 // Includes should be relegated to what we've #defined
 #include <stdlib.h>
 #include <stdio.h>
-#include <string.h>
 #include <math.h>
 #include "defines.h"
 
@@ -110,8 +109,10 @@ Mat mat_alloc(size_t rows, size_t cols)
     m.stride = cols;
     m.elements = COMMON_MALLOC(sizeof(*m.elements)*rows*cols);
     COMMON_ASSERT(m.elements != NULL);
-    // Zeroing memory 
-    memset(m.elements, 0, m.rows * m.cols * sizeof(float));
+    // Zeroing memory. Explicilty not using memset 
+    for (size_t i = 0; i < rows*cols; i++) {
+        m.elements[i] = 0.0f;
+    }
     return m;
 }
 

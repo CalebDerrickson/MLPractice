@@ -36,14 +36,15 @@ int xor()
     NN g = nn_alloc(arch, ARRAY_LEN(arch));
     nn_rand(nn, 0, 1);
 
-    printf("cost = %f\n", nn_cost(nn, ti, to));
+
     eps = 1e-1;
     rate = 1e-1;
     for (size_t i = 0; i < 1e5; i++) {
         nn_finite_diff(nn, g, ti, to);
         nn_learn(nn, g);
     }
-
+    
+    printf("cost = %f\n", nn_cost(nn, ti, to));
     for (size_t i = 0; i < 2; i++) {
         for (size_t j = 0; j < 2; j++) {
             MAT_AT(NN_INPUT(nn), 0, 0) = i;
