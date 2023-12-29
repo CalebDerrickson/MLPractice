@@ -74,8 +74,9 @@ static void nn_rand(NN nn, float low, float high);
 static void nn_forward(NN nn);
 static float nn_cost(NN nn, Mat ti, Mat to);
 
-// Might need to pass in epsilon to change it 
 static void nn_finite_diff(NN nn, NN g, Mat ti, Mat to);
+
+static void nn_back_prop(NN nn, NN g, Mat ti, Mat to);
 
 static void nn_learn(NN nn, NN g);
 
@@ -341,6 +342,64 @@ void nn_finite_diff(NN nn, NN g, Mat ti, Mat to)
                 MAT_AT(nn.bs[i], j, k)+= eps;
                 MAT_AT(g.bs[i], j, k) = (nn_cost(nn, ti, to) - c) / eps;
                 MAT_AT(nn.bs[i], j, k) = saved;
+            }
+        }
+    }
+}
+
+void nn_back_prop(NN nn, NN g, Mat ti, Mat to)
+{
+    COMMON_ASSERT(ti.rows == to.rows);
+    COMMON_ASSERT(NN_OUTPUT(nn).cols == to.cols);
+    size_t n = ti.rows;
+
+    // i - current sample
+    // l - current layer
+    // j - current activation
+    // k - current activation
+
+    for (size_t i = 0; i < n; i++) {
+        mat_copy(NN_INPUT(nn), mat_row(ti, i));
+        nn_forward(nn);
+        for (size_t j = 0; j < to.cols; j++) {
+            MAT_AT(NN_OUTPUT(g), 0, j) = MAT_AT(NN_OUTPUT(nn), 0, j) - MAT_AT(to, i, j);
+        }
+        for (size_t l = nn.num_layers; l > 0; l--) {
+            for(size_t j = 0; j < nn.as[l].cols; j++) {
+                
+                // Taking these as row vectors. 
+                // This might be an issue. 
+
+                float a = MAT_AT(nn.as[l], 0, j);
+                float da = MAT_AT(g.as[l], 0, j);
+                
+                MAT_AT(g.bs[l-1], 0, j) += 2*da*a*(1-a);
+
+                for (size_t k = 0; k < nn.as[l-1].cols; k++) {
+                    
+                    // j - weight matrix column
+                    // k - weight matrix row
+
+                    float prev_layer_a = MAT_AT(nn.as[l-1], 0, k);
+                    float w = MAT_AT(nn.ws[l-1], k, j);
+                    MAT_AT(g.ws[l-1], k, j) += 2*da*a*(1-a)*prev_layer_a;
+                    MAT_AT(g.as[l-1], 0, k) += 2*da*a*(1-a)*w;
+                }
+            }
+        }
+    }
+
+    // Dividing by n
+    for (size_t i = 0; i < g.num_layers; i++) { 
+        for (size_t j = 0; j < g.ws[i].rows; j++) {
+            for (size_t k = 0; k < g.ws[i].cols; k++) { 
+                MAT_AT(g.ws[i], j, k) /=n;
+            }
+        }
+
+        for (size_t j = 0; j < g.bs[i].rows; j++) {
+            for (size_t k = 0; k < g.bs[i].cols; k++) { 
+                MAT_AT(g.bs[i], j, k) /=n;
             }
         }
     }
