@@ -12,7 +12,12 @@ float td[] = {
 
 int xor() 
 {
-    srand(time(0));
+    // srand(time(0));
+    srand(69);
+
+    // Splitting training data.
+    // input -> first two columns
+    // output -> last column
 
     size_t stride = 3;
     size_t n  = sizeof(td)/sizeof(td[0])/stride;
@@ -37,11 +42,18 @@ int xor()
     nn_rand(nn, 0, 1);
 
 
-    eps = 1e-1;
+    
     rate = 1e-1;
-    for (size_t i = 0; i < 1e5; i++) {
-        nn_finite_diff(nn, g, ti, to);
-        nn_learn(nn, g);
+    for (size_t i = 0; i < 1; i++) {
+#if 0
+    eps = 1e-1;
+    nn_finite_diff(nn, g, ti, to);
+#else
+    nn_back_prop(nn, g, ti, to);
+#endif
+    NN_PRINT(g);
+        //nn_learn(nn, g);
+        //printf("%llu: cost = %f\n", i, nn_cost(nn, ti, to));
     }
     
     printf("cost = %f\n", nn_cost(nn, ti, to));

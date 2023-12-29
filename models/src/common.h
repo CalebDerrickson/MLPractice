@@ -70,6 +70,7 @@ typedef struct NN {
  */
 static NN nn_alloc(size_t *arch, size_t arch_count);
 static void nn_print(NN nn, const char* name);
+static void nn_zero(NN nn);
 static void nn_rand(NN nn, float low, float high);
 static void nn_forward(NN nn);
 static float nn_cost(NN nn, Mat ti, Mat to);
@@ -275,6 +276,16 @@ void nn_print(NN nn, const char* name)
     printf("]\n");
 }
 
+void nn_zero(NN nn)
+{
+    for (size_t i = 0; i < nn.num_layers; i++) {
+        mat_fill(nn.ws[i], 0);
+        mat_fill(nn.bs[i], 0);
+        mat_fill(nn.as[i], 0);
+    }
+    mat_fill(nn.as[nn.num_layers], 0);
+}
+
 void nn_rand(NN nn, float low, float high)
 {
     for (size_t i = 0; i < nn.num_layers; i++) {
@@ -294,8 +305,8 @@ void nn_forward(NN nn)
 
 float nn_cost(NN nn, Mat ti, Mat to)
 {
-    assert(ti.rows == to.rows);
-    assert(to.cols == NN_OUTPUT(nn).cols);
+    COMMON_ASSERT(ti.rows == to.rows);
+    COMMON_ASSERT(to.cols == NN_OUTPUT(nn).cols);
     size_t n = ti.rows;
 
     float c = 0;
@@ -347,11 +358,16 @@ void nn_finite_diff(NN nn, NN g, Mat ti, Mat to)
     }
 }
 
+
+// something is messing up in the transition from row vectors to column vector
+// convention. 
 void nn_back_prop(NN nn, NN g, Mat ti, Mat to)
 {
     COMMON_ASSERT(ti.rows == to.rows);
     COMMON_ASSERT(NN_OUTPUT(nn).cols == to.cols);
     size_t n = ti.rows;
+
+    nn_zero(g);
 
     // i - current sample
     // l - current layer
@@ -359,19 +375,19 @@ void nn_back_prop(NN nn, NN g, Mat ti, Mat to)
     // k - current activation
 
     for (size_t i = 0; i < n; i++) {
-        mat_copy(NN_INPUT(nn), mat_row(ti, i));
+        mat_copy(NN_INPUT(nn), mat_transpose(mat_row(ti, i)));
         nn_forward(nn);
         for (size_t j = 0; j < to.cols; j++) {
-            MAT_AT(NN_OUTPUT(g), 0, j) = MAT_AT(NN_OUTPUT(nn), 0, j) - MAT_AT(to, i, j);
+            MAT_AT(NN_OUTPUT(g), j, 0) = MAT_AT(NN_OUTPUT(nn), 0, j) - MAT_AT(to, i, j);
         }
+        NN_PRINT(g); // For debug
         for (size_t l = nn.num_layers; l > 0; l--) {
             for(size_t j = 0; j < nn.as[l].cols; j++) {
                 
-                // Taking these as row vectors. 
-                // This might be an issue. 
+                // This is an issue. 
 
-                float a = MAT_AT(nn.as[l], 0, j);
-                float da = MAT_AT(g.as[l], 0, j);
+                float a = MAT_AT(nn.as[l], j, 0);
+                float da = MAT_AT(g.as[l], j, 0);
                 
                 MAT_AT(g.bs[l-1], 0, j) += 2*da*a*(1-a);
 
@@ -380,10 +396,10 @@ void nn_back_prop(NN nn, NN g, Mat ti, Mat to)
                     // j - weight matrix column
                     // k - weight matrix row
 
-                    float prev_layer_a = MAT_AT(nn.as[l-1], 0, k);
-                    float w = MAT_AT(nn.ws[l-1], k, j);
-                    MAT_AT(g.ws[l-1], k, j) += 2*da*a*(1-a)*prev_layer_a;
-                    MAT_AT(g.as[l-1], 0, k) += 2*da*a*(1-a)*w;
+                    float prev_layer_a = MAT_AT(nn.as[l-1], k, 0);
+                    float w = MAT_AT(nn.ws[l-1], j, k);
+                    MAT_AT(g.ws[l-1], j, k) += 2*da*a*(1-a)*prev_layer_a;
+                    MAT_AT(g.as[l-1], k, 0) += 2*da*a*(1-a)*w;
                 }
             }
         }
